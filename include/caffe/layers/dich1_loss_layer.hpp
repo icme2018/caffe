@@ -1,0 +1,44 @@
+#ifndef CAFFE_DICH1_LOSS_LAYER_HPP_
+#define CAFFE_DICH1_LOSS_LAYER_HPP_
+
+#include <vector>
+
+#include "caffe/blob.hpp"
+#include "caffe/layer.hpp"
+#include "caffe/proto/caffe.pb.h"
+
+#include "caffe/layers/loss_layer.hpp"
+
+namespace caffe {
+
+template <typename Dtype>
+class DICH1LossLayer : public LossLayer<Dtype> {
+ public:
+  explicit DICH1LossLayer(const LayerParameter& param)
+      : LossLayer<Dtype>(param), diff_(), tmpBottom_(){}
+  virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+
+  virtual inline int ExactNumBottomBlobs() const { return 2; }
+  virtual inline const char* type() const { return "DICH1Loss"; }
+  virtual inline bool AllowForceBackward(const int bottom_index) const {
+    return bottom_index != 1;
+  }
+
+ protected:
+  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+  virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+
+  Blob<Dtype> diff_;  // cached for backward pass
+  Blob<Dtype> dist_sq_;  // cached for backward pass
+  Blob<Dtype> diff_sq_;  // tmp storage for forward pass
+  Blob<Dtype> summer_vec_;  // tmp storage for forward pass
+
+  Blob<Dtype> tmpBottom_;
+};
+
+}  // namespace caffe
+
+#endif  // CAFFE_DICH1_LOSS_LAYER_HPP_
